@@ -63,9 +63,8 @@ for id in device_ids:
 print (f'Header row is:{header_row}')
 with open(output_filename, "a") as fp:
     wr = csv.writer(fp, dialect='excel')
-
-    # To do: this needs to be fixed.  We are parsing out every letter
-    wr.writerow(f'Temperature collection starting at {start_display}')
+    title = [f'Temperature collection experiment starting at {start_display}']
+    wr.writerow(title)
     wr.writerow(header_row)
 
 # Dump the contents of a given 1-wire device

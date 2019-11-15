@@ -147,9 +147,9 @@ def send_email(filename,timestamp):
     from email.mime.text import MIMEText
 
     subject = "Temperature sensor experiment " + timestamp
-    body = "Temperature sensor experiment data sent to you by Sophie's data robot."
-    sender_email = "data.robot42@gmail.com"
-    receiver_email = "vincent.hartung@gmail.com"
+    body = "Temperature sensor experiment data sent to you by your friendly neighbourhood data robot."
+    sender_email = "sender@gmail.com"
+    receiver_email = "receiver@gmail.com"
     password = ""
 
     # Create a multipart message and set headers

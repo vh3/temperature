@@ -17,12 +17,12 @@ import csv
 delay_between_readings = 1.0
 
 # set the max length of time we will record data, in seconds
-max_time = 5.0
+max_time = 15.0
 
 # For certain long-running data collection activities, we may want to write the data
 # one reading at a time in case there is some power failure or other stoppage in data collection before it is complete.
 write_immediate = 0
-if delay_between_readings > 30.0 and max_time > 600.0:
+if delay_between_readings >= 30.0 and max_time >= 600.0:
     write_immediate = 1
 
 # Find the filename associated with the temperature sensor devices.
@@ -129,7 +129,6 @@ while (elapsed_time <= max_time):
     data.insert(0,round(elapsed_time,0))
     print(data)
     reading_data.append(data)
-    time.sleep(delay_between_readings)
 
     # If we are going to write results to file immediately
     if write_immediate == 1:
@@ -138,6 +137,8 @@ while (elapsed_time <= max_time):
             wr = csv.writer(fp, dialect='excel')
             wr.writerows(reading_data)
             reading_data = []
+
+    time.sleep(delay_between_readings)
 
 # Write the reading_data to comma-delimited .csv file
 # This will only be meaningful where write_immediate = 0
@@ -158,8 +159,8 @@ def send_email(filename,timestamp):
 
     subject        = "Temperature sensor experiment " + timestamp
     body           = "Temperature sensor experiment data sent to you by your friendly neighbourhood data robot."
-    sender_email   = "sender@gmail.com"
-    receiver_email = "receiver@gmail.com"
+    sender_email   = ""
+    receiver_email = ""
     password       = ""
 
     # Create a multipart message and set headers
@@ -201,6 +202,6 @@ def send_email(filename,timestamp):
 
     return
 
-print (f'Attempting to email the output file ({output_filename}) to Sophie.')
+print (f'Attempting to email the output file ({output_filename}).')
 send_email(output_filename,timestamp)
 print ('Done.')

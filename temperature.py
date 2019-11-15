@@ -1,15 +1,20 @@
 # temperature.py
-# A script intended to read temperature information from multiple DS18B20 temperature sensors.
-#
+# A script intended to read temperature information from multiple DS18B20 temperature sensors
+# and send to a comma-delimited file
+
 # 08 Nov 2019, vh, starter from Adafruit lesson here: https://learn.adafruit.com/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing/overview
 # 10 Nov 2019, vh, added functions for multiple sensors, formatted output for graphing
-# 14 Nov 2019, vh, added email support
+# 14 Nov 2019, vh, added email support after: https://realpython.com/python-send-email/
 
 import glob
 import time
 from datetime import datetime
 import os.path
 import csv
+
+# Do we want to email the output file somewhere?  Default is set to 'no'
+email_result = 0
+email_destination = ""
 
 # Set the number of seconds to pause after each reading.
 # Note that we don't control the total amount of time it takes
@@ -141,14 +146,14 @@ while (elapsed_time <= max_time):
     time.sleep(delay_between_readings)
 
 # Write the reading_data to comma-delimited .csv file
-# This will only be meaningful where write_immediate = 0
+# This will only be meaningful where write_immediate = 0 (otherwise, we have been writing every record as it was read)
 with open(output_filename, "a") as fp:
     wr = csv.writer(fp, dialect='excel')
     wr.writerows(reading_data)
 
 # Send this file by email!
 # After: https://realpython.com/python-send-email/
-def send_email(filename,timestamp):
+def send_email(email_destination,filename,timestamp):
 
     import email, smtplib, ssl
 
@@ -160,15 +165,14 @@ def send_email(filename,timestamp):
     subject        = "Temperature sensor experiment " + timestamp
     body           = "Temperature sensor experiment data sent to you by your friendly neighbourhood data robot."
     sender_email   = ""
-    receiver_email = ""
     password       = ""
 
     # Create a multipart message and set headers
     message = MIMEMultipart()
-    message["From"] = sender_email
-    message["To"] = receiver_email
+    message["From"]    = sender_email
+    message["To"]      = email_destination
     message["Subject"] = subject
-    message["Bcc"] = receiver_email  # Recommended for mass emails
+    # message["Bcc"]     = email_destination  # Recommended for mass emails
 
     # Add body to email
     message.attach(MIMEText(body, "plain"))
@@ -198,10 +202,11 @@ def send_email(filename,timestamp):
     context = ssl.create_default_context()
     with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
         server.login(sender_email, password)
-        server.sendmail(sender_email, receiver_email, text)
+        server.sendmail(sender_email, email_destination, text)
 
     return
 
 print (f'Attempting to email the output file ({output_filename}).')
-send_email(output_filename,timestamp)
+if email_result == 1:
+    send_email(email_destination, output_filename,timestamp)
 print ('Done.')

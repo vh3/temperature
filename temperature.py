@@ -1,10 +1,15 @@
 # temperature.py
-# A script intended to read temperature information from multiple DS18B20 temperature sensors
+# A script intended to read temperature information from a set of DS18B20 temperature sensors
 # and send to a comma-delimited file
 
-# 08 Nov 2019, vh, starter from Adafruit lesson here: https://learn.adafruit.com/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing/overview
-# 10 Nov 2019, vh, added functions for multiple sensors, formatted output for graphing
-# 14 Nov 2019, vh, added email support after: https://realpython.com/python-send-email/
+# 08 Nov 2019, vh3, starter from Adafruit lesson here: https://learn.adafruit.com/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing/overview
+# 10 Nov 2019, vh3, added functions for multiple sensors, formatted output for graphing
+# 14 Nov 2019, vh3, added email support after: https://realpython.com/python-send-email/
+# 17 Nov 2019, vh3, moved email function to a seperate file
+
+# setup - this script was developed on a Raspberry PI 3+ running Raspian Linux.
+# setup - sensor connection for the digital DS18B20 temperature sensors is super easy.
+# setup - sensors were connected according to adafruit instructions: https://learn.adafruit.com/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing/overview
 
 import glob
 import time
@@ -12,9 +17,11 @@ from datetime import datetime
 import os.path
 import csv
 
-# Do we want to email the output file somewhere?  Default is set to 'no'
+# Optional: Do we want to email the output file somewhere?
+# If you want to use the email functionality, you will need to set up and email account for your robot.
+# Instructions for this are available here: https://realpython.com/python-send-email/
 email_result = 0
-email_destination = ""
+email_destination = "adestination@adomain.com"
 
 # Set the number of seconds to pause after each reading.
 # Note that we don't control the total amount of time it takes
@@ -22,7 +29,7 @@ email_destination = ""
 delay_between_readings = 1.0
 
 # set the max length of time we will record data, in seconds
-max_time = 15.0
+max_time = 5.0
 
 # For certain long-running data collection activities, we may want to write the data
 # one reading at a time in case there is some power failure or other stoppage in data collection before it is complete.
@@ -30,7 +37,7 @@ write_immediate = 0
 if delay_between_readings >= 30.0 and max_time >= 600.0:
     write_immediate = 1
 
-# Find the filename associated with the temperature sensor devices.
+# Find the output filenames associated with the temperature sensor devices.
 # The temperature sensors are "Dallas 1-wire protocol" devices, whose outputs are found here:
 path = '/sys/bus/w1/devices/'
 
@@ -43,6 +50,7 @@ device_paths = []
 # Initialize an empty list to hold the unique identifier for each device
 device_ids = []
 
+# Create a list of paths we can iterate over when we want to read all the individual sensors later 
 for dev in glob.glob(path + '28*'):
 
     identifier = os.path.split(dev)[1]
@@ -124,10 +132,13 @@ def read_temp2(sensor_filelist):
 # test out put new read_temp2function
 # print (f'output={read_temp2(device_paths)}')
 
-# Loop, reading temperature and writing to file until the max time is reached
+# Start a timer
 elapsed_time = 0
-# initialize a list to hold our data temporarily to hold our data
+
+# initialize a list to hold our data temporarily.  Each element of reading_data will become a row in our output data file
 reading_data = []
+
+# Loop, reading temperature and writing to file until the max time is reached
 while (elapsed_time <= max_time):
     elapsed_time = time.time() - start_time
     data = read_temp2(device_paths)
@@ -151,62 +162,9 @@ with open(output_filename, "a") as fp:
     wr = csv.writer(fp, dialect='excel')
     wr.writerows(reading_data)
 
-# Send this file by email!
-# After: https://realpython.com/python-send-email/
-def send_email(email_destination,filename,timestamp):
-
-    import email, smtplib, ssl
-
-    from email import encoders
-    from email.mime.base import MIMEBase
-    from email.mime.multipart import MIMEMultipart
-    from email.mime.text import MIMEText
-
-    subject        = "Temperature sensor experiment " + timestamp
-    body           = "Temperature sensor experiment data sent to you by your friendly neighbourhood data robot."
-    sender_email   = ""
-    password       = ""
-
-    # Create a multipart message and set headers
-    message = MIMEMultipart()
-    message["From"]    = sender_email
-    message["To"]      = email_destination
-    message["Subject"] = subject
-    # message["Bcc"]     = email_destination  # Recommended for mass emails
-
-    # Add body to email
-    message.attach(MIMEText(body, "plain"))
-
-    # filename = "document.pdf"  # In same directory as script
-    # Open PDF file in binary mode
-    with open(filename, "rb") as attachment:
-        # Add file as application/octet-stream
-        # Email client can usually download this automatically as attachment
-        part = MIMEBase("application", "octet-stream")
-        part.set_payload(attachment.read())
-
-    # Encode file in ASCII characters to send by email    
-    encoders.encode_base64(part)
-
-    # Add header as key/value pair to attachment part
-    part.add_header(
-        "Content-Disposition",
-        f"attachment; filename= {filename}",
-    )
-
-    # Add attachment to message and convert message to string
-    message.attach(part)
-    text = message.as_string()
-
-    # Log in to server using secure context and send email
-    context = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-        server.login(sender_email, password)
-        server.sendmail(sender_email, email_destination, text)
-
-    return
-
-print (f'Attempting to email the output file ({output_filename}).')
+# If we asked to send an email with the results, do it now.
 if email_result == 1:
-    send_email(email_destination, output_filename,timestamp)
-print ('Done.')
+    from robot_send import send_email
+    print (f'Attempting to email the output file ({output_filename}) to {email_destination}.')
+    send_email(email_destination, output_filename, timestamp)
+    print ('Done.')

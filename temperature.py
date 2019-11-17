@@ -5,6 +5,7 @@
 # 10 Nov 2019, vh3, added functions for multiple sensors, formatted output for graphing in Excel
 # 14 Nov 2019, vh3, added email support after: https://realpython.com/python-send-email/
 # 17 Nov 2019, vh3, moved email function to its own file
+# Uploaded in the hope it will be useful to others. Grateful for any improvement suggestions - @themakerfam
 
 # setup - This script was developed on a Raspberry PI 3+ running Raspian Linux.
 # setup - Sensor connection for the digital DS18B20 temperature sensors is super easy and reading the output from these digital sensors is as easy as parsing data out of a text file.

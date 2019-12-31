@@ -9,3 +9,5 @@ Software:  python, a command line script.  We used the Thonny IDE that comes ins
 We used an Adafruit tutorial to set up the hardware.  These sensors are very simple to set up, and are easy to use - On Linux, their output is written to text files.  All we need to do is parse the files when we want to take a reading.  The tutorial we used can be found here: https://cdn-learn.adafruit.com/downloads/pdf/adafruits-raspberry-pi-lesson-11-ds18b20-temperature-sensing.pdf.  You will need to use it to set up your sensors and a resistor on a breadboard, connect them to GPIO pin 4 on the Raspberry Pi and do some basic configuration of the Pi to enable the one-wire protocol.
 
 We added a twist: If you wish, the robot will email you the temperature data as a single comma-delimited (.csv) file when the experiment has ended.  We used this site as a code reference: https://realpython.com/python-send-email/.  It also includes instructions for setting up a gmail account especially for this purpose.  You will have to edit the robot_send.py script with the sending account details.
+
+@themakerfam
